@@ -17,6 +17,11 @@
         "backgroundColor": "#7C3AED"
       }
     },
+      "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#ffffff"
+  },
     "extra": {
       "eas": {
         "projectId": "39656a57-ca62-4365-848f-ddbffd90747d"
