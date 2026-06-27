@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play16 — Administration</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+:root{
+  --primary:#7C3AED;--primary-light:#F5F0FF;--primary-border:#DDD6FE;
+  --green:#16A34A;--green-light:#F0FDF4;
+  --gold:#D97706;--gold-light:#FFFBEB;
+  --blue:#2563EB;--blue-light:#EFF6FF;
+  --red:#DC2626;--red-light:#FEF2F2;
+  --text:#0D0D14;--text-sub:#6B7280;--text-light:#9CA3AF;
+  --border:#E4E6EA;--bg:#F5F6F8;--white:#FFFFFF;
+  --sidebar:240px;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#7C3AED,#5B21B6)}
+.auth-card{background:#fff;border-radius:24px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.auth-logo-icon{width:44px;height:44px;border-radius:12px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900}
+.auth-logo-text{font-size:20px;font-weight:800}
+.auth-logo-text span{color:var(--primary)}
+h2{font-size:20px;font-weight:800;margin-bottom:6px}
+.sub{font-size:13px;color:var(--text-sub);margin-bottom:22px;line-height:1.5}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;display:block;color:var(--text)}
+.inp{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg);margin-bottom:14px}
+.inp:focus{outline:none;border-color:var(--primary);background:#fff}
+.inp-code{font-size:26px;font-weight:800;letter-spacing:10px;text-align:center}
+.btn-main{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-main:disabled{opacity:.5}
+.back{color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:18px;display:inline-block}
+.err{color:var(--red);font-size:13px;margin-top:10px;display:none}
+.info-box{background:var(--primary-light);border:1px solid var(--primary-border);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--primary);line-height:1.6}
+.sim-box{background:var(--gold-light);border:1px solid rgba(217,119,6,.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--gold);line-height:1.6;display:none}
+.store-banner{background:var(--gold);color:#fff;padding:10px 20px;text-align:center;font-size:13px;font-weight:700;position:sticky;top:0;z-index:200;display:none}
+#app-screen{display:none}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;background:#fff;border-right:1px solid var(--border);overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.main{margin-left:var(--sidebar);padding:24px;min-height:100vh}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:.3s}.sidebar.open{transform:translateX(0)}.main{margin-left:0}}
+.sb-head{padding:18px 14px;border-bottom:1px solid var(--border)}
+.sb-logo{display:flex;align-items:center;gap:8px}
+.sb-logo-icon{width:32px;height:32px;border-radius:9px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px}
+.sb-logo-txt{font-size:15px;font-weight:800}
+.sb-logo-txt span{color:var(--primary)}
+.admin-pill{margin:10px 12px;background:var(--primary-light);border-radius:12px;padding:12px 14px}
+.admin-pill-name{font-size:13px;font-weight:700}
+.admin-pill-role{font-size:11px;color:var(--text-sub);margin-top:2px}
+.nav-sec{padding:6px 12px;margin-top:6px}
+.nav-sec-title{font-size:10px;font-weight:800;color:var(--text-light);letter-spacing:1px;padding:0 4px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-sub);transition:.15s;margin-bottom:2px}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:700}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700}
+.sb-foot{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.logout-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--red);font-weight:600}
+.logout-btn:hover{background:var(--red-light)}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.topbar-title{font-size:21px;font-weight:800}
+.menu-toggle{display:none;background:none;border:none;cursor:pointer;font-size:22px;margin-right:10px}
+@media(max-width:768px){.menu-toggle{display:block}}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+.stat{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--border)}
+.stat-icon{font-size:22px;margin-bottom:8px}
+.stat-val{font-size:22px;font-weight:800}
+.stat-lbl{font-size:12px;color:var(--text-sub);margin-top:3px}
+.stat-sub{font-size:11px;color:var(--text-light);margin-top:2px}
+.card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--border);margin-bottom:18px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:700}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
+td{padding:11px 12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--bg)}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bg{background:var(--green-light);color:var(--green)}
+.bb{background:var(--blue-light);color:var(--blue)}
+.br{background:var(--red-light);color:var(--red)}
+.bo{background:var(--gold-light);color:var(--gold)}
+.bp{background:var(--primary-light);color:var(--primary)}
+.bgray{background:var(--bg);color:var(--text-sub)}
+.btn{padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-p{background:var(--primary);color:#fff}
+.btn-g{background:var(--green);color:#fff}
+.btn-r{background:var(--red);color:#fff}
+.btn-b{background:var(--blue);color:#fff}
+.btn-o{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px}
+.alert-w{background:var(--gold-light);color:var(--gold);border:1px solid rgba(217,119,6,.3)}
+.alert-s{background:var(--green-light);color:var(--green);border:1px solid rgba(22,163,74,.3)}
+.alert-e{background:var(--red-light);color:var(--red);border:1px solid rgba(220,38,38,.3)}
+.alert-i{background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:18px;padding:26px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:14px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.fg{margin-bottom:14px}
+.fl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block;color:var(--text)}
+.fi{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg)}
+.fsel{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg)}
+.fta{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg);resize:vertical;min-height:80px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.tgl-lbl{font-size:13px;font-weight:600}
+.tgl-desc{font-size:11px;color:var(--text-sub);margin-top:2px}
+.tgl{position:relative;width:42px;height:23px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-s{position:absolute;inset:0;background:var(--border);border-radius:23px;cursor:pointer;transition:.3s}
+.tgl-s:before{content:'';position:absolute;width:17px;height:17px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.tgl input:checked+.tgl-s{background:var(--primary)}
+.tgl input:checked+.tgl-s:before{transform:translateX(19px)}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.sinp{width:110px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;text-align:center}
+.page{display:none}
+.page.active{display:block}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text-sub)}
+.empty-icon{font-size:36px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="store-banner" id="storeBanner">⚠️ MODE PUBLICATION STORE ACTIF — Fonctionnalités financières avancées désactivées</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <!-- ÉTAPE 1 : Login -->
+  <div id="step-login">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">P</div>
+        <div class="auth-logo-text">PLAY <span>16</span> Admin</div>
+      </div>
+      <h2>Connexion</h2>
+      <p class="sub">Super Admin : connexion directe par mot de passe.<br>Sous-admins : mot de passe + code WhatsApp.</p>
+      <label class="lbl">Numéro WhatsApp</label>
+      <input class="inp" type="tel" id="l-phone" placeholder="237XXXXXXXXX">
+      <label class="lbl">Mot de passe</label>
+      <input class="inp" type="password" id="l-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn-main" onclick="doLogin()" id="l-btn">Se connecter</button>
+      <div class="err" id="l-err"></div>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2 : OTP (sous-admins uniquement) -->
+  <div id="step-otp" style="display:none">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">P</div>
+        <div class="auth-logo-text">PLAY <span>16</span> Admin</div>
+      </div>
+      <span class="back" onclick="showLogin()">‹ Retour</span>
+      <h2>Vérification 2FA</h2>
+      <p class="sub">Code envoyé par WhatsApp sur votre numéro.</p>
+      <div class="sim-box" id="otp-sim">⚠️ Mode simulation — Le code est visible dans les logs Railway Console (onglet Console du service).</div>
+      <label class="lbl">Code à 6 chiffres</label>
+      <input class="inp inp-code" type="number" id="otp-code" placeholder="000000" maxlength="6" onkeydown="if(event.key==='Enter')doVerify()">
+      <button class="btn-main" onclick="doVerify()" id="otp-btn">Confirmer</button>
+      <div class="err" id="otp-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">P</div>
+        <div class="sb-logo-txt">PLAY <span>16</span></div>
+      </div>
+    </div>
+    <div class="admin-pill">
+      <div class="admin-pill-name" id="sb-name">—</div>
+      <div class="admin-pill-role" id="sb-role">—</div>
+    </div>
+    <div id="nav-super" style="display:none">
+      <div class="nav-sec"><div class="nav-sec-title">GÉNÉRAL</div>
+        <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</div>
+        <div class="nav-item" onclick="nav('admins',this)"><span class="nav-icon">👥</span>Sous-administrateurs</div>
+        <div class="nav-item" onclick="nav('users',this)"><span class="nav-icon">👤</span>Tous les comptes</div>
+        <div class="nav-item" onclick="nav('search',this)"><span class="nav-icon">🔍</span>Recherche</div>
+      </div>
+      <div class="nav-sec"><div class="nav-sec-title">FINANCES</div>
+        <div class="nav-item" onclick="nav('qr-lots',this)"><span class="nav-icon">🎲</span>QR Codes &amp; Lots</div>
+        <div class="nav-item" onclick="nav('reports',this)"><span class="nav-icon">📈</span>Rapports</div>
+      </div>
+      <div class="nav-sec"><div class="nav-sec-title">SYSTÈMES</div>
+        <div class="nav-item" onclick="nav('integrations',this)"><span class="nav-icon">🔌</span>Intégrations (Tiroir SIM)</div>
+        <div class="nav-item" onclick="nav('features',this)"><span class="nav-icon">🎛️</span>Fonctionnalités</div>
+        <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Paramètres globaux</div>
+        <div class="nav-item" onclick="nav('security',this)"><span class="nav-icon">🔐</span>Sécurité</div>
+        <div class="nav-item" onclick="nav('sessions',this)"><span class="nav-icon">📋</span>Journal sessions</div>
+        <div class="nav-item" onclick="nav('cgu',this)"><span class="nav-icon">📜</span>CGU</div>
+      </div>
+    </div>
+    <div id="nav-ventes" style="display:none">
+      <div class="nav-sec"><div class="nav-sec-title">VENTES</div>
+        <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Vue générale</div>
+        <div class="nav-item" onclick="nav('orders',this)"><span class="nav-icon">🛒</span>Commandes</div>
+        <div class="nav-item" onclick="nav('deliveries',this)"><span class="nav-icon">🚚</span>Livraisons</div>
+        <div class="nav-item" onclick="nav('boost-requests',this)"><span class="nav-icon">⚡</span>Demandes boost</div>
+        <div class="nav-item" onclick="nav('disputes',this)"><span class="nav-icon">⚖️</span>Litiges</div>
+      </div>
+    </div>
+    <div id="nav-cashwork" style="display:none">
+      <div class="nav-sec"><div class="nav-sec-title">CASH-WORK</div>
+        <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Vue générale</div>
+        <div class="nav-item" onclick="nav('cw-missions',this)"><span class="nav-icon">💼</span>Missions</div>
+        <div class="nav-item" onclick="nav('disputes',this)"><span class="nav-icon">⚖️</span>Litiges</div>
+        <div class="nav-item" onclick="nav('security',this)"><span class="nav-icon">🚨</span>Anomalies fraude</div>
+      </div>
+    </div>
+    <div id="nav-externe" style="display:none">
+      <div class="nav-sec"><div class="nav-sec-title">PAIEMENTS EXTERNES</div>
+        <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">📊</span>Vue générale</div>
+        <div class="nav-item" onclick="nav('ext-payments',this)"><span class="nav-icon">💳</span>Transactions</div>
+        <div class="nav-item" onclick="nav('disputes',this)"><span class="nav-icon">⚖️</span>Litiges</div>
+      </div>
+    </div>
+    <div class="sb-foot">
+      <div class="logout-btn" onclick="doLogout()">🚪 Se déconnecter</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="topbar-title" id="page-title">Dashboard</div>
+      </div>
+      <span class="badge bp" id="role-badge"></span>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="stats-grid"><div class="stat"><div class="stat-icon">⏳</div><div class="stat-val">—</div><div class="stat-lbl">Chargement...</div></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Activité récente</span></div><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+    </div>
+
+    <!-- ADMINS -->
+    <div class="page" id="page-admins">
+      <div class="card">
+        <div class="card-header"><span class="card-title">👥 Sous-administrateurs</span><button class="btn btn-p btn-sm" onclick="openM('m-admin')">+ Créer</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>WhatsApp</th><th>Statut</th><th>Accès étendu</th><th>Actions</th></tr></thead><tbody id="tb-admins"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- COMMANDES -->
+    <div class="page" id="page-orders">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🛒 Commandes</span><button class="btn btn-p btn-sm" onclick="openM('m-delivery')">+ Livraison manuelle</button></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-o btn-sm" onclick="loadOrders()">Toutes</button>
+          <button class="btn btn-o btn-sm" onclick="loadOrders('paid')">Payées</button>
+          <button class="btn btn-o btn-sm" onclick="loadOrders('in_transit')">En transit</button>
+          <button class="btn btn-o btn-sm" onclick="loadOrders('delivered')">Livrées</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Client</th><th>Produit</th><th>Montant</th><th>Statut</th><th>Origine</th><th>Date</th></tr></thead><tbody id="tb-orders"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LIVRAISONS -->
+    <div class="page" id="page-deliveries">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚚 Livraisons — GPS temps réel (toujours visible admin)</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn btn-o btn-sm" onclick="loadDeliveries()">Toutes</button>
+          <button class="btn btn-o btn-sm" onclick="loadDeliveries('auto')">Auto</button>
+          <button class="btn btn-o btn-sm" onclick="loadDeliveries('manuel')">Manuelles</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Client</th><th>Livreur</th><th>Statut</th><th>Origine</th><th>GPS</th><th>Actions</th></tr></thead><tbody id="tb-deliveries"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- INTÉGRATIONS -->
+    <div class="page" id="page-integrations">
+      <div class="alert alert-i">🔌 Configurez vos partenaires ici. Sans configuration = mode simulation (aucun crash).</div>
+      <div id="integrations-list"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+    </div>
+
+    <!-- FONCTIONNALITÉS -->
+    <div class="page" id="page-features">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎛️ Fonctionnalités</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm" style="background:var(--gold);color:#fff" onclick="activateStore()">🏪 Mode Store</button>
+            <button class="btn btn-o btn-sm" onclick="deactivateStore()">✅ Désactiver</button>
+          </div>
+        </div>
+        <div class="alert alert-w">⚠️ Le Mode Store Review désactive toutes les fonctionnalités financières avancées pour la validation Google Play / App Store.</div>
+        <div id="features-list"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+      </div>
+    </div>
+
+    <!-- PARAMÈTRES -->
+    <div class="page" id="page-settings">
+      <div class="card"><div class="card-header"><span class="card-title">⚙️ Paramètres globaux</span></div><div id="settings-list"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div></div>
+    </div>
+
+    <!-- SÉCURITÉ -->
+    <div class="page" id="page-security">
+      <div class="stats-grid" id="sec-stats"><div class="stat"><div class="stat-icon">⏳</div><div class="stat-val">—</div><div class="stat-lbl">Chargement...</div></div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔐 Paramètres sécurité</span><button class="btn btn-r btn-sm" onclick="revokeAll()">🚨 Révoquer toutes sessions</button></div>
+        <div id="sec-settings"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+      </div>
+      <div class="card"><div class="card-header"><span class="card-title">🚨 Alertes fraude</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Type</th><th>Sévérité</th><th>Détails</th><th>Date</th><th>Actions</th></tr></thead><tbody id="tb-alerts"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div class="page" id="page-sessions">
+      <div class="card"><div class="card-header"><span class="card-title">📋 Journal des sessions admin</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Admin</th><th>Rôle</th><th>WhatsApp</th><th>Début</th><th>Fin</th><th>Actions</th><th>Voir</th></tr></thead><tbody id="tb-sessions"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- QR LOTS -->
+    <div class="page" id="page-qr-lots">
+      <div class="card"><div class="card-header"><span class="card-title">🎲 Lots QR Code</span><button class="btn btn-p btn-sm" onclick="openM('m-lot')">+ Créer un lot</button></div>
+        <div id="qr-list"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+      </div>
+    </div>
+
+    <!-- CGU -->
+    <div class="page" id="page-cgu">
+      <div class="card"><div class="card-header"><span class="card-title">📜 Gestion CGU</span></div>
+        <div id="cgu-current" style="margin-bottom:14px"><div class="empty-state"><div class="empty-icon">⏳</div><p>Chargement...</p></div></div>
+        <label class="fl">Nouvelle version</label>
+        <textarea class="fta" id="cgu-content" rows="10" placeholder="Rédigez les CGU ici..."></textarea>
+        <button class="btn btn-p btn-sm" style="margin-top:10px" onclick="publishCGU()">Publier</button>
+      </div>
+    </div>
+
+    <!-- RAPPORTS -->
+    <div class="page" id="page-reports">
+      <div class="card"><div class="card-header"><span class="card-title">📈 Rapport quotidien</span><button class="btn btn-p btn-sm" onclick="loadReport()">🔄 Actualiser</button></div>
+        <div id="report-content"><div class="empty-state"><div class="empty-icon">📈</div><p>Cliquez sur Actualiser</p></div></div>
+      </div>
+    </div>
+
+    <!-- RECHERCHE -->
+    <div class="page" id="page-search">
+      <div class="card"><div class="card-header"><span class="card-title">🔍 Recherche globale</span></div>
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <input class="fi" id="search-q" placeholder="Numéro, ID transaction..." style="flex:1">
+          <button class="btn btn-p btn-sm" onclick="doSearch()">Rechercher</button>
+        </div>
+        <div id="search-res"><div class="empty-state"><div class="empty-icon">🔍</div><p>Entrez un terme</p></div></div>
+      </div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="page" id="page-cw-missions">
+      <div class="card"><div class="card-header"><span class="card-title">💼 Missions Cash-Work</span></div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Client</th><th>Prestataire</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody id="tb-missions"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- PAIEMENTS EXT -->
+    <div class="page" id="page-ext-payments">
+      <div class="card"><div class="card-header"><span class="card-title">💳 Transactions externes</span></div>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Acheteur</th><th>Vendeur WhatsApp</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody id="tb-ext"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- BOOST -->
+    <div class="page" id="page-boost-requests">
+      <div class="card"><div class="card-header"><span class="card-title">⚡ Demandes boost</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Produit</th><th>Niveau</th><th>Date</th><th>Actions</th></tr></thead><tbody id="tb-boost"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-sub)">Chargement...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LITIGES -->
+    <div class="page" id="page-disputes">
+      <div class="card"><div class="card-header"><span class="card-title">⚖️ Litiges</span></div>
+        <div class="empty-state"><div class="empty-icon">⚖️</div><p>Aucun litige en cours</p></div>
+      </div>
+    </div>
+
+    <!-- COMPTES -->
+    <div class="page" id="page-users">
+      <div class="card"><div class="card-header"><span class="card-title">👤 Tous les comptes</span></div>
+        <div class="empty-state"><div class="empty-icon">👤</div><p>Fonctionnalité disponible</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-ov" id="m-admin">
+  <div class="modal">
+    <div class="modal-title">👤 Créer un sous-administrateur</div>
+    <div class="fg"><label class="fl">Nom complet</label><input class="fi" id="a-name" placeholder="Ex: Sophie Bello"></div>
+    <div class="fg"><label class="fl">Rôle</label><select class="fsel" id="a-role"><option value="admin_ventes">Admin Ventes</option><option value="admin_cashwork">Admin Cash-Work</option><option value="admin_externe">Admin Paiements Externes</option></select></div>
+    <div class="fg"><label class="fl">Numéro WhatsApp</label><input class="fi" type="tel" id="a-phone" placeholder="237XXXXXXXXX"></div>
+    <div class="alert alert-w">⚠️ Le mot de passe temporaire sera envoyé par WhatsApp. L'admin devra le changer à la première connexion.</div>
+    <div class="modal-foot"><button class="btn btn-o" onclick="closeM('m-admin')">Annuler</button><button class="btn btn-p" onclick="createAdmin()">Créer</button></div>
+  </div>
+</div>
+
+<div class="modal-ov" id="m-delivery">
+  <div class="modal">
+    <div class="modal-title">🚚 Livraison manuelle</div>
+    <div class="fg"><label class="fl">ID de la commande</label><input class="fi" id="d-order-id" placeholder="UUID de la commande"></div>
+    <div class="alert alert-i">ℹ️ Tous les livreurs disponibles seront notifiés automatiquement.</div>
+    <div class="modal-foot"><button class="btn btn-o" onclick="closeM('m-delivery')">Annuler</button><button class="btn btn-p" onclick="createDelivery()">Créer</button></div>
+  </div>
+</div>
+
+<div class="modal-ov" id="m-lot">
+  <div class="modal">
+    <div class="modal-title">🎲 Créer un lot QR</div>
+    <div class="fg"><label class="fl">Nombre d'acheteurs ciblés</label><input class="fi" type="number" id="lot-count" placeholder="Ex: 100"></div>
+    <div class="fg"><label class="fl">Récompense 1 — Type</label><input class="fi" id="r1-type" placeholder="Cash / Montre / Crédit..."></div>
+    <div class="fg"><label class="fl">Récompense 1 — Valeur</label><input class="fi" id="r1-val" placeholder="Ex: 5000 FCFA"></div>
+    <div class="fg"><label class="fl">Récompense 1 — Nb gagnants</label><input class="fi" type="number" id="r1-cnt" placeholder="Ex: 5"></div>
+    <div class="alert alert-i">🔐 Tirage cryptographique côté serveur — impossible de désigner un gagnant manuellement.</div>
+    <div class="modal-foot"><button class="btn btn-o" onclick="closeM('m-lot')">Annuler</button><button class="btn btn-p" onclick="createLot()">Créer</button></div>
+  </div>
+</div>
+
+<script>
+const API='https://play16-backend-production.up.railway.app';
+let token=localStorage.getItem('p16_token');
+let me=JSON.parse(localStorage.getItem('p16_admin')||'null');
+let tmp={};
+
+const ROLES={super_admin:'Super Administrateur',admin_ventes:'Admin Ventes',admin_cashwork:'Admin Cash-Work',admin_externe:'Admin Paiements Externes'};
+
+async function call(m,p,b){
+  const h={'Content-Type':'application/json'};
+  if(token)h['Authorization']='Bearer '+token;
+  const r=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined});
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Erreur serveur');
+  return d;
+}
+const fmt=n=>n?parseInt(n).toLocaleString('fr-FR'):'0';
+const fmtD=d=>d?new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+function badge(s){const m={pending:'bo',paid:'bb',in_transit:'bp',delivered:'bg',cancelled:'br',escrowed:'bo',completed:'bg',refunded:'bgray',open:'bb',validated:'bg',invoice_sent:'bo'};return`<span class="badge ${m[s]||'bgray'}">${s||'—'}</span>`}
+function err(id,msg){const e=document.getElementById(id);e.textContent=msg;e.style.display=''}
+function clearErr(id){const e=document.getElementById(id);e.style.display='none'}
+
+// ── AUTH ─────────────────────────────────────────
+function showLogin(){document.getElementById('step-login').style.display='';document.getElementById('step-otp').style.display='none';clearErr('l-err');clearErr('otp-err')}
+
+async function doLogin(){
+  const phone=document.getElementById('l-phone').value.trim();
+  const pwd=document.getElementById('l-pwd').value;
+  if(!phone||!pwd)return;
+  const btn=document.getElementById('l-btn');
+  btn.disabled=true;btn.textContent='Connexion...';
+  clearErr('l-err');
+  try{
+    const r=await call('POST','/api/auth/admin-login',{whatsapp_number:phone,password:pwd});
+    if(!r.requires_2fa){
+      // Super Admin — connexion directe sans OTP
+      token=r.token; me=r.admin;
+      localStorage.setItem('p16_token',token);
+      localStorage.setItem('p16_admin',JSON.stringify(me));
+      initApp();
+    } else {
+      // Sous-admin — OTP requis
+      tmp={admin_id:r.admin_id,phone,session_id:r.session_id};
+      document.getElementById('step-login').style.display='none';
+      document.getElementById('step-otp').style.display='';
+      if(r.simulated)document.getElementById('otp-sim').style.display='';
+    }
+  }catch(e){err('l-err',e.message)}
+  btn.disabled=false;btn.textContent='Se connecter';
+}
+
+async function doVerify(){
+  const code=document.getElementById('otp-code').value.trim();
+  if(code.length!==6)return;
+  const btn=document.getElementById('otp-btn');
+  btn.disabled=true;btn.textContent='Vérification...';
+  clearErr('otp-err');
+  try{
+    const r=await call('POST','/api/auth/admin-verify-2fa',{admin_id:tmp.admin_id,whatsapp_number:tmp.phone,code,session_id:tmp.session_id});
+    token=r.token;me=r.admin;
+    localStorage.setItem('p16_token',token);
+    localStorage.setItem('p16_admin',JSON.stringify(me));
+    initApp();
+  }catch(e){err('otp-err',e.message)}
+  btn.disabled=false;btn.textContent='Confirmer';
+}
+
+function doLogout(){
+  if(!confirm('Se déconnecter ?'))return;
+  call('POST','/api/auth/admin-logout').catch(()=>{});
+  localStorage.removeItem('p16_token');localStorage.removeItem('p16_admin');
+  token=null;me=null;location.reload();
+}
+
+// ── INIT ─────────────────────────────────────────
+function initApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='';
+  document.getElementById('sb-name').textContent=me.full_name||'Admin';
+  document.getElementById('sb-role').textContent=ROLES[me.role]||me.role;
+  document.getElementById('role-badge').textContent=ROLES[me.role]||me.role;
+  const navMap={super_admin:'nav-super',admin_ventes:'nav-ventes',admin_cashwork:'nav-cashwork',admin_externe:'nav-externe'};
+  document.getElementById(navMap[me.role]||'nav-ventes').style.display='';
+  loadDashboard();checkStore();
+}
+
+// ── NAV ──────────────────────────────────────────
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  if(el)el.classList.add('active');
+  const titles={dashboard:'Dashboard',admins:'Sous-administrateurs',orders:'Commandes',deliveries:'Livraisons',integrations:'Intégrations (Tiroir SIM)',features:'Fonctionnalités',settings:'Paramètres globaux',security:'Sécurité',sessions:'Journal sessions','qr-lots':'QR Codes & Lots',cgu:'CGU',reports:'Rapports',search:'Recherche','cw-missions':'Missions Cash-Work','ext-payments':'Paiements externes','boost-requests':'Demandes boost',disputes:'Litiges',users:'Comptes'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  const actions={admins:loadAdmins,orders:loadOrders,deliveries:loadDeliveries,integrations:loadIntegrations,features:loadFeatures,settings:loadSettings,security:loadSecurity,sessions:loadSessions,'qr-lots':loadQRLots,cgu:loadCGU,reports:loadReport,'cw-missions':loadMissions,'ext-payments':loadExtPayments};
+  if(actions[id])actions[id]();
+}
+
+// ── DASHBOARD ────────────────────────────────────
+async function loadDashboard(){
+  try{
+    if(me.role==='super_admin'){
+      const d=await call('GET','/api/superadmin/dashboard');
+      document.getElementById('stats-grid').innerHTML=`
+        <div class="stat"><div class="stat-icon">👤</div><div class="stat-val">${fmt(d.users?.total)}</div><div class="stat-lbl">Comptes actifs</div><div class="stat-sub">+${fmt(d.users?.this_month)} ce mois</div></div>
+        <div class="stat"><div class="stat-icon">🛒</div><div class="stat-val">${fmt(d.orders?.total)}</div><div class="stat-lbl">Commandes</div><div class="stat-sub">${fmt(d.orders?.revenue)} FCFA</div></div>
+        <div class="stat"><div class="stat-icon">💼</div><div class="stat-val">${fmt(d.cashwork?.total)}</div><div class="stat-lbl">Missions CW validées</div></div>
+        <div class="stat"><div class="stat-icon">⚖️</div><div class="stat-val">${fmt(d.disputes?.open)}</div><div class="stat-lbl">Litiges ouverts</div></div>
+        <div class="stat"><div class="stat-icon">⚡</div><div class="stat-val">${fmt(d.pending_boosts?.total)}</div><div class="stat-lbl">Boosts en attente</div></div>`;
+      if(d.play_store_review_mode)document.getElementById('storeBanner').style.display='block';
+    } else {
+      const r=await call('GET',`/api/reports/admin/${me.role}`);
+      let h='<div class="stats-grid">';
+      if(r.data)Object.entries(r.data).forEach(([k,v])=>{h+=`<div class="stat"><div class="stat-val">${typeof v==='number'&&v>999?fmt(v)+' FCFA':v}</div><div class="stat-lbl">${k.replace(/_/g,' ')}</div></div>`;});
+      h+='</div>';
+      document.getElementById('stats-grid').innerHTML=h;
+    }
+    document.getElementById('page-dashboard').querySelector('.card').querySelector('.empty-state').innerHTML='<div class="empty-icon">✅</div><p>Dashboard chargé</p>';
+  }catch(e){document.getElementById('stats-grid').innerHTML=`<div class="alert alert-e">❌ ${e.message}</div>`;}
+}
+
+// ── ADMINS ───────────────────────────────────────
+async function loadAdmins(){
+  try{
+    const r=await call('GET','/api/superadmin/admins');
+    document.getElementById('tb-admins').innerHTML=r.admins.map(a=>`<tr>
+      <td><strong>${a.full_name}</strong></td><td>${badge(a.role)}</td><td>${a.whatsapp_number}</td>
+      <td>${a.is_active?'<span class="badge bg">Actif</span>':'<span class="badge br">Inactif</span>'}</td>
+      <td><label class="tgl"><input type="checkbox" ${a.extended_access?'checked':''} onchange="toggleExt('${a.id}',this.checked)"><span class="tgl-s"></span></label></td>
+      <td style="display:flex;gap:6px"><button class="btn btn-sm btn-b" onclick="supervise('${a.id}','${a.full_name}')">👁️ Voir</button></td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Aucun sous-admin</td></tr>';
+  }catch(e){document.getElementById('tb-admins').innerHTML=`<tr><td colspan="6">${e.message}</td></tr>`;}
+}
+
+async function createAdmin(){
+  const name=document.getElementById('a-name').value.trim();
+  const role=document.getElementById('a-role').value;
+  const phone=document.getElementById('a-phone').value.trim();
+  if(!name||!phone)return alert('Remplissez tous les champs');
+  try{await call('POST','/api/superadmin/admins',{full_name:name,role,whatsapp_number:phone});alert('✅ Sous-admin créé. Mot de passe envoyé par WhatsApp.');closeM('m-admin');loadAdmins();}catch(e){alert('Erreur: '+e.message);}
+}
+
+async function toggleExt(id,enabled){try{await call('PUT',`/api/superadmin/admins/${id}/extended-access`,{enabled});}catch(e){alert('Erreur: '+e.message);}}
+
+async function supervise(id,name){
+  try{
+    await call('POST',`/api/superadmin/supervision/start/${id}`);
+    alert(`👁️ Mode supervision activé pour ${name}.\nVous consultez son interface en lecture seule.\nCette consultation est journalisée.`);
+  }catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── COMMANDES ────────────────────────────────────
+async function loadOrders(status){
+  try{
+    const r=await call('GET','/api/orders/admin/all'+(status?'?status='+status:''));
+    document.getElementById('tb-orders').innerHTML=r.orders.map(o=>`<tr>
+      <td><code style="font-size:11px">${o.id?.slice(0,8).toUpperCase()}</code></td>
+      <td>${o.client_name||'—'}<br><small style="color:var(--text-sub)">${o.client_phone||''}</small></td>
+      <td>${o.product_name||'—'}</td><td><strong>${fmt(o.total_amount)} FCFA</strong></td>
+      <td>${badge(o.status)}</td>
+      <td><span class="badge ${o.origin==='auto'?'bgray':'bb'}">${o.origin}</span></td>
+      <td>${fmtD(o.created_at)}</td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub)">Aucune commande</td></tr>';
+  }catch(e){document.getElementById('tb-orders').innerHTML=`<tr><td colspan="7">${e.message}</td></tr>`;}
+}
+
+// ── LIVRAISONS ───────────────────────────────────
+async function loadDeliveries(type){
+  try{
+    const r=await call('GET','/api/deliveries/admin/all'+(type?'?type='+type:''));
+    document.getElementById('tb-deliveries').innerHTML=r.deliveries.map(d=>`<tr>
+      <td><code style="font-size:11px">${d.id?.slice(0,8).toUpperCase()}</code></td>
+      <td>${d.client_name||'—'}</td>
+      <td>${d.livreur_name||'<em style="color:var(--text-sub)">Non assigné</em>'}</td>
+      <td>${badge(d.status)}</td>
+      <td><span class="badge ${d.origin==='automatique'?'bgray':'bb'}">${d.origin}</span></td>
+      <td>${d.latitude?`📍 ${parseFloat(d.latitude).toFixed(4)}, ${parseFloat(d.longitude).toFixed(4)}`:'<em style="color:var(--text-sub)">Aucun GPS</em>'}</td>
+      <td><button class="btn btn-sm btn-o" onclick="viewGPS('${d.id}')">📍</button></td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub)">Aucune livraison</td></tr>';
+  }catch(e){document.getElementById('tb-deliveries').innerHTML=`<tr><td colspan="7">${e.message}</td></tr>`;}
+}
+
+async function createDelivery(){
+  const id=document.getElementById('d-order-id').value.trim();
+  if(!id)return alert('Entrez un ID de commande');
+  try{await call('POST','/api/deliveries',{order_id:id});alert('✅ Livraison créée. Livreurs notifiés.');closeM('m-delivery');loadDeliveries();}catch(e){alert('Erreur: '+e.message);}
+}
+
+async function viewGPS(id){
+  try{const r=await call('GET',`/api/deliveries/${id}/location/admin`);r.location?alert(`📍 Dernière position\nLat: ${r.location.latitude}\nLng: ${r.location.longitude}\nMise à jour: ${fmtD(r.location.recorded_at)}`):alert('Aucune position GPS disponible.');}catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── INTÉGRATIONS ─────────────────────────────────
+function loadIntegrations(){
+  const providers={campay:'💳 Campay (Orange Money / MTN MoMo)',cinetpay:'💳 CinetPay',whatsapp_business:'💬 WhatsApp Business API',twilio:'📱 Twilio (SMS/WhatsApp)',firebase_push:'🔔 Firebase Push',sendgrid:'📧 SendGrid (Email)',google_maps:'🗺️ Google Maps',storage_cdn:'☁️ Stockage CDN',deep_linking:'🔗 Deep Linking'};
+  document.getElementById('integrations-list').innerHTML=Object.entries(providers).map(([k,l])=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header"><span class="card-title">${l}</span><span class="badge bgray" id="st-${k}">Non configuré</span></div>
+      <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px">Tiroir SIM — remplissez les champs pour activer. Vide = mode simulation sans crash.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-p btn-sm" onclick="alert('Configurez ${k} via l\\'API ou demandez à votre développeur')">⚙️ Configurer</button>
+        <button class="btn btn-g btn-sm" onclick="activateInt('${k}')">✅ Activer</button>
+        <button class="btn btn-r btn-sm" onclick="deactivateInt('${k}')">⛔ Désactiver</button>
+      </div>
+    </div>`).join('');
+}
+
+function activateInt(k){document.getElementById('st-'+k).textContent='Actif';document.getElementById('st-'+k).className='badge bg';}
+function deactivateInt(k){document.getElementById('st-'+k).textContent='Inactif';document.getElementById('st-'+k).className='badge br';}
+
+// ── FONCTIONNALITÉS ──────────────────────────────
+async function loadFeatures(){
+  try{
+    const r=await call('GET','/api/features');
+    document.getElementById('features-list').innerHTML=r.features.map(f=>`
+      <div class="toggle-row">
+        <div><div class="tgl-lbl">${f.label}${f.always_on?' 🔒':''}${f.store_review_off?' 🏪':''}</div>
+          <div class="tgl-desc">${f.always_on?'Toujours active':f.reason||''}</div></div>
+        <label class="tgl"><input type="checkbox" ${f.effective_status?'checked':''} ${f.always_on?'disabled':''} onchange="toggleFeat('${f.key}',this.checked)"><span class="tgl-s"></span></label>
+      </div>`).join('');
+  }catch(e){document.getElementById('features-list').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+async function toggleFeat(k,v){try{await call('PUT',`/api/features/${k}`,{enabled:v});}catch(e){alert('Erreur: '+e.message);loadFeatures();}}
+async function activateStore(){if(!confirm('Activer le Mode Store Review ?\n\nToutes les fonctionnalités financières seront désactivées immédiatement.'))return;try{await call('POST','/api/features/store-review/activate');document.getElementById('storeBanner').style.display='block';alert('✅ Mode Store activé.');loadFeatures();}catch(e){alert('Erreur: '+e.message);}}
+async function deactivateStore(){try{await call('POST','/api/features/store-review/deactivate');document.getElementById('storeBanner').style.display='none';alert('✅ Mode Store désactivé.');loadFeatures();}catch(e){alert('Erreur: '+e.message);}}
+async function checkStore(){try{const r=await call('GET','/api/features/app-config');if(r.play_store_review_mode)document.getElementById('storeBanner').style.display='block';}catch(e){}}
+
+// ── PARAMÈTRES ───────────────────────────────────
+async function loadSettings(){
+  try{
+    const r=await call('GET','/api/settings');
+    document.getElementById('settings-list').innerHTML=r.settings.map(s=>`
+      <div class="srow">
+        <div><div style="font-size:13px;font-weight:600">${s.key}</div><div style="font-size:11px;color:var(--text-sub)">${s.description||''}</div></div>
+        <div style="display:flex;gap:8px;align-items:center"><input class="sinp" id="set-${s.key}" value="${s.value}"><button class="btn btn-sm btn-p" onclick="saveSetting('${s.key}')">💾</button></div>
+      </div>`).join('');
+  }catch(e){document.getElementById('settings-list').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+async function saveSetting(k){
+  const v=document.getElementById('set-'+k)?.value;
+  try{await call('PUT',`/api/settings/${k}`,{value:v});alert('✅ Paramètre mis à jour');}catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── SÉCURITÉ ─────────────────────────────────────
+async function loadSecurity(){
+  try{
+    const [d,al,s]=await Promise.all([call('GET','/api/security/dashboard'),call('GET','/api/security/alerts'),call('GET','/api/security/settings')]);
+    document.getElementById('sec-stats').innerHTML=`
+      <div class="stat"><div class="stat-icon">🚨</div><div class="stat-val">${fmt(d.fraud_alerts?.open)}</div><div class="stat-lbl">Alertes fraude ouvertes</div></div>
+      <div class="stat"><div class="stat-icon">📵</div><div class="stat-val">${fmt(d.otp_blocked_numbers?.total)}</div><div class="stat-lbl">Numéros OTP bloqués</div></div>
+      <div class="stat"><div class="stat-icon">🗑️</div><div class="stat-val">${fmt(d.jwt_revocations_7d?.total)}</div><div class="stat-lbl">Tokens révoqués (7j)</div></div>
+      <div class="stat"><div class="stat-icon">📍</div><div class="stat-val">${fmt(d.gps_anomalies_24h?.total)}</div><div class="stat-lbl">Anomalies GPS (24h)</div></div>`;
+    document.getElementById('sec-settings').innerHTML=s.settings.map(x=>`
+      <div class="srow"><div><div style="font-size:13px;font-weight:600">${x.key}</div><div style="font-size:11px;color:var(--text-sub)">${x.description||''}</div></div>
+        <div style="display:flex;gap:8px;align-items:center"><input class="sinp" id="ss-${x.key}" value="${x.value}"><button class="btn btn-sm btn-p" onclick="saveSecSetting('${x.key}')">💾</button></div>
+      </div>`).join('');
+    document.getElementById('tb-alerts').innerHTML=al.alerts.map(a=>`<tr>
+      <td>${a.alert_type}</td>
+      <td><span class="badge ${a.severity==='high'?'br':a.severity==='medium'?'bo':'bgray'}">${a.severity}</span></td>
+      <td style="font-size:12px">${a.details||'—'}</td><td>${fmtD(a.created_at)}</td>
+      <td><button class="btn btn-sm btn-g" onclick="resolveAlert('${a.id}')">✅</button></td>
+    </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-sub)">Aucune alerte</td></tr>';
+  }catch(e){document.getElementById('sec-stats').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+async function saveSecSetting(k){const v=document.getElementById('ss-'+k)?.value;try{await call('PUT',`/api/security/settings/${k}`,{value:v});alert('✅ Mis à jour');}catch(e){alert('Erreur: '+e.message);}}
+async function resolveAlert(id){try{await call('PUT',`/api/security/alerts/${id}/resolve`);alert('✅ Alerte résolue');loadSecurity();}catch(e){alert('Erreur: '+e.message);}}
+async function revokeAll(){if(!confirm('🚨 Révoquer TOUTES les sessions actives ?\n\nTous les utilisateurs devront se reconnecter.'))return;try{await call('POST','/api/security/revoke-all-sessions',{reason:'Emergency'});alert('✅ Toutes sessions révoquées.');}catch(e){alert('Erreur: '+e.message);}}
+
+// ── SESSIONS ─────────────────────────────────────
+async function loadSessions(){
+  try{
+    const r=await call('GET','/api/superadmin/sessions');
+    document.getElementById('tb-sessions').innerHTML=r.sessions.map(s=>`<tr>
+      <td><strong>${s.admin_name}</strong></td><td>${badge(s.admin_role)}</td>
+      <td>${s.whatsapp_number_used}</td><td>${fmtD(s.started_at)}</td>
+      <td>${s.ended_at?fmtD(s.ended_at):'<em>En cours</em>'}</td>
+      <td><span class="badge bb">${s.action_count} action(s)</span></td>
+      <td><button class="btn btn-sm btn-o" onclick="viewActions('${s.id}')">Voir</button></td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:24px">Aucune session</td></tr>';
+  }catch(e){document.getElementById('tb-sessions').innerHTML=`<tr><td colspan="7">${e.message}</td></tr>`;}
+}
+
+async function viewActions(id){
+  try{const r=await call('GET',`/api/superadmin/sessions/${id}/actions`);alert(r.actions.map(a=>`• ${fmtD(a.created_at)} — ${a.action_type}: ${a.description||''}`).join('\n')||'Aucune action.');}catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── QR LOTS ──────────────────────────────────────
+async function loadQRLots(){
+  try{
+    const r=await call('GET','/api/superadmin/qr-lots');
+    document.getElementById('qr-list').innerHTML=r.qr_lots.length===0?'<div class="empty-state"><div class="empty-icon">🎲</div><p>Aucun lot créé</p></div>':
+      r.qr_lots.map(l=>`<div style="padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><strong>${l.target_buyer_count} acheteurs ciblés</strong><span class="badge ${l.status==='active'?'bg':'bgray'}">${l.status}</span></div><div style="font-size:12px;color:var(--text-sub);margin-top:4px">Créé le ${fmtD(l.created_at)}</div></div>`).join('');
+  }catch(e){document.getElementById('qr-list').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+async function createLot(){
+  const count=parseInt(document.getElementById('lot-count').value);
+  const type=document.getElementById('r1-type').value;
+  const val=document.getElementById('r1-val').value;
+  const cnt=parseInt(document.getElementById('r1-cnt').value);
+  if(!count||!type||!cnt)return alert('Remplissez tous les champs');
+  try{await call('POST','/api/superadmin/qr-lots',{target_buyer_count:count,rewards:[{type,value:val,winner_count:cnt}]});alert('✅ Lot QR créé avec tirage cryptographique.');closeM('m-lot');loadQRLots();}catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── CGU ──────────────────────────────────────────
+async function loadCGU(){
+  try{
+    const r=await call('GET','/api/superadmin/cgu/current');
+    document.getElementById('cgu-current').innerHTML=r.empty?'<div class="alert alert-w">⚠️ Aucune CGU publiée — l\'app affiche un message générique.</div>':`<div class="alert alert-s">✅ Version v${r.version_number} — publiée le ${fmtD(r.published_at)}</div><div style="background:var(--bg);border-radius:10px;padding:12px;font-size:12px;max-height:160px;overflow-y:auto;white-space:pre-wrap">${r.content}</div>`;
+  }catch(e){document.getElementById('cgu-current').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+async function publishCGU(){
+  const content=document.getElementById('cgu-content').value.trim();
+  if(!content)return alert('Rédigez les CGU avant de publier');
+  if(!confirm('Publier cette nouvelle version des CGU ?\n\nTous les utilisateurs devront les accepter.'))return;
+  try{const r=await call('POST','/api/superadmin/cgu',{content});alert(`✅ CGU v${r.version} publiées.`);loadCGU();}catch(e){alert('Erreur: '+e.message);}
+}
+
+// ── RAPPORT ───────────────────────────────────────
+async function loadReport(){
+  try{
+    const r=await call('GET','/api/superadmin/report/daily');
+    document.getElementById('report-content').innerHTML=`<div class="stats-grid">
+      <div class="stat"><div class="stat-icon">📅</div><div class="stat-val">${r.date}</div><div class="stat-lbl">Date</div></div>
+      <div class="stat"><div class="stat-icon">🛒</div><div class="stat-val">${fmt(r.orders?.count)}</div><div class="stat-lbl">Commandes</div><div class="stat-sub">${fmt(r.orders?.revenue)} FCFA</div></div>
+      <div class="stat"><div class="stat-icon">💼</div><div class="stat-val">${fmt(r.cashwork?.count)}</div><div class="stat-lbl">Missions CW</div></div>
+      <div class="stat"><div class="stat-icon">💳</div><div class="stat-val">${fmt(r.external?.count)}</div><div class="stat-lbl">Paiements externes</div><div class="stat-sub">${fmt(r.external?.total)} FCFA</div></div>
+      <div class="stat"><div class="stat-icon">👤</div><div class="stat-val">${fmt(r.new_users?.count)}</div><div class="stat-lbl">Nouveaux comptes</div></div>
+    </div>`;
+  }catch(e){document.getElementById('report-content').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+// ── RECHERCHE ─────────────────────────────────────
+async function doSearch(){
+  const q=document.getElementById('search-q').value.trim();
+  if(!q)return;
+  try{
+    const r=await call('GET',`/api/superadmin/search?q=${encodeURIComponent(q)}`);
+    let h='';
+    if(r.results.orders?.length){h+='<div style="font-weight:700;margin-bottom:8px">🛒 Commandes</div>';h+=r.results.orders.map(o=>`<div style="padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px"><strong>${o.id?.slice(0,8).toUpperCase()}</strong> — ${o.client_name||''} — ${fmt(o.total_amount)} FCFA — ${badge(o.status)}</div>`).join('');}
+    if(r.results.external_payments?.length){h+='<div style="font-weight:700;margin:12px 0 8px">💳 Paiements externes</div>';h+=r.results.external_payments.map(p=>`<div style="padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px"><strong>EXT-${p.id?.slice(0,8).toUpperCase()}</strong> — ${fmt(p.amount)} FCFA — ${badge(p.status)}</div>`).join('');}
+    document.getElementById('search-res').innerHTML=h||'<div class="empty-state"><div class="empty-icon">🔍</div><p>Aucun résultat</p></div>';
+  }catch(e){document.getElementById('search-res').innerHTML=`<div class="alert alert-e">${e.message}</div>`;}
+}
+
+// ── MISSIONS / EXT PAYMENTS ───────────────────────
+function loadMissions(){document.getElementById('tb-missions').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Données disponibles via API</td></tr>';}
+function loadExtPayments(){document.getElementById('tb-ext').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-sub)">Données disponibles via API</td></tr>';}
+
+// ── MODALS ────────────────────────────────────────
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ── INIT ──────────────────────────────────────────
+if(token&&me){initApp();}
+else{document.getElementById('auth-screen').style.display='flex';}
+</script>
+</body>
+</html>
